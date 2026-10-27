@@ -26,8 +26,8 @@ The unstable methods (`providers/*`, `mcp/message`, `session/fork`) are not incl
 Implement `acp.Agent`. Optional methods (`SessionLoader`, `SessionModeSetter`, and so on) are separate interfaces; implement the ones you support and advertise them in `InitializeResponse`.
 
 ```go
-agent := &myAgent{}
-agent.conn = acp.ServeAgent(ctx, agent, os.Stdin, os.Stdout)
+agent := &myAgent{conn: acp.NewAgentConn(os.Stdin, os.Stdout)}
+agent.conn.Serve(ctx, agent) // the agent holds its conn before any message arrives
 <-agent.conn.Done()
 ```
 

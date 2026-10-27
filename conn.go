@@ -71,14 +71,19 @@ type peer struct {
 	cancel  func(jsonrpc2.ID)
 }
 
-func newPeer(ctx context.Context, rwc io.ReadWriteCloser, methods map[string]method, impl any) *peer {
-	p := &peer{methods: methods}
-	p.ext, _ = impl.(Extension)
-	handler, cancel := jsonrpc2.CancelHandler(p.handle)
-	p.cancel = cancel
+func newPeer(rwc io.ReadWriteCloser) *peer {
+	p := &peer{}
 	p.conn = jsonrpc2.NewConn(jsonrpc2.NewNDJSONStream(rwc), jsonrpc2.WithPreempter(p))
-	p.conn.Go(ctx, handler)
 	return p
+}
+
+// serve starts reading: from here on incoming messages reach methods.
+func (p *peer) serve(ctx context.Context, methods map[string]method, impl any) {
+	p.methods = methods
+	p.ext, _ = impl.(Extension)
+	var handler jsonrpc2.Handler
+	handler, p.cancel = jsonrpc2.CancelHandler(p.handle)
+	p.conn.Go(ctx, handler)
 }
 
 func (p *peer) handle(ctx context.Context, req *jsonrpc2.Request) (any, error) {

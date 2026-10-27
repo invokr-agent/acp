@@ -46,8 +46,8 @@ func (e *echo) Prompt(ctx context.Context, req acp.PromptRequest) (acp.PromptRes
 func (e *echo) Cancel(context.Context, acp.CancelNotification) error { return nil }
 
 func main() {
-	agent := &echo{}
-	agent.conn = acp.ServeAgent(context.Background(), agent, os.Stdin, os.Stdout)
+	agent := &echo{conn: acp.NewAgentConn(os.Stdin, os.Stdout)}
+	agent.conn.Serve(context.Background(), agent)
 	<-agent.conn.Done()
 	if err := agent.conn.Err(); err != nil {
 		log.Fatal(err)

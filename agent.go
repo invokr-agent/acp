@@ -55,10 +55,17 @@ type AgentConn struct {
 	prompts sessions
 }
 
-// ServeAgent serves agent over r and w (a client usually launches the agent and
-// talks to its stdin and stdout) until the stream ends or ctx is cancelled.
-func ServeAgent(ctx context.Context, agent Agent, r io.Reader, w io.Writer) *AgentConn {
-	c := &AgentConn{}
+// NewAgentConn makes the agent's end of a connection over r and w (a client
+// usually launches the agent and talks to its stdin and stdout). Hand it to the
+// agent, then call Serve: the agent has its connection before any message is
+// read.
+func NewAgentConn(r io.Reader, w io.Writer) *AgentConn {
+	return &AgentConn{peer: newPeer(stdio{r, w})}
+}
+
+// Serve dispatches incoming messages to agent until the stream ends or ctx is
+// cancelled. It returns at once; wait on Done.
+func (c *AgentConn) Serve(ctx context.Context, agent Agent) {
 	m := map[string]method{
 		"initialize":   bind(agent.Initialize),
 		"authenticate": bind(agent.Authenticate),
@@ -85,8 +92,7 @@ func ServeAgent(ctx context.Context, agent Agent, r io.Reader, w io.Writer) *Age
 	opt(m, agent, "session/set_mode", SessionModeSetter.SetSessionMode)
 	opt(m, agent, "session/set_config_option", SessionConfigSetter.SetSessionConfigOption)
 	opt(m, agent, "logout", LogoutHandler.Logout)
-	c.peer = newPeer(ctx, stdio{r, w}, m, agent)
-	return c
+	c.serve(ctx, m, agent)
 }
 
 // SessionUpdate streams one update (message chunk, tool call, plan, ...) to the client.

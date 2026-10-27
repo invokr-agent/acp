@@ -47,7 +47,7 @@ type ClientConn struct {
 
 // Connect serves client over r and w, the agent's stdout and stdin.
 func Connect(ctx context.Context, client Client, r io.Reader, w io.Writer) *ClientConn {
-	c := &ClientConn{}
+	c := &ClientConn{peer: newPeer(stdio{r, w})}
 	m := map[string]method{
 		"session/update": notify(client.SessionUpdate),
 		"session/request_permission": bind(func(ctx context.Context, req RequestPermissionRequest) (RequestPermissionResponse, error) {
@@ -71,7 +71,7 @@ func Connect(ctx context.Context, client Client, r io.Reader, w io.Writer) *Clie
 	if e, ok := client.(Elicitor); ok {
 		m["elicitation/complete"] = notify(e.CompleteElicitation)
 	}
-	c.peer = newPeer(ctx, stdio{r, w}, m, client)
+	c.serve(ctx, m, client)
 	return c
 }
 

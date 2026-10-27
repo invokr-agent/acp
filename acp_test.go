@@ -71,7 +71,8 @@ func pair(t *testing.T, agent *testAgent) (*ClientConn, *testClient) {
 	t.Cleanup(cancel)
 	toAgentR, toAgentW := io.Pipe()
 	toClientR, toClientW := io.Pipe()
-	agent.conn = ServeAgent(ctx, agent, toAgentR, toClientW)
+	agent.conn = NewAgentConn(toAgentR, toClientW)
+	agent.conn.Serve(ctx, agent)
 	client := &testClient{updates: make(chan SessionUpdate, 8)}
 	cc := Connect(ctx, client, toClientR, toAgentW)
 	t.Cleanup(func() { _ = cc.Close(); _ = agent.conn.Close() })
