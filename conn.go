@@ -14,19 +14,6 @@ import (
 // V1 is the ACP major version this package speaks.
 const V1 ProtocolVersion = 1
 
-// NewError returns a JSON-RPC error carrying an ACP error code, e.g.
-// NewError(ErrAuthRequired, "log in first").
-func NewError(code ErrorCode, message string) error {
-	return jsonrpc2.NewError(jsonrpc2.Code(code), message)
-}
-
-// Extension handles "_"-prefixed methods and notifications, ACP's extension
-// space. Implement it on an Agent or Client to receive them; without it,
-// extension calls get "method not found" and notifications are dropped.
-type Extension interface {
-	HandleExtension(ctx context.Context, method string, params json.RawMessage) (any, error)
-}
-
 type method func(ctx context.Context, params json.RawMessage) (any, error)
 
 // bind adapts a typed handler to the dispatch table.
@@ -120,17 +107,6 @@ func (p *peer) Preempt(_ context.Context, req *jsonrpc2.Request) (any, error) {
 		}
 	}
 	return struct{}{}, nil
-}
-
-// CallExtension sends a "_"-prefixed request and decodes its result into result.
-func (p *peer) CallExtension(ctx context.Context, method string, params, result any) error {
-	_, err := p.conn.Call(ctx, method, params, result)
-	return err
-}
-
-// NotifyExtension sends a "_"-prefixed notification.
-func (p *peer) NotifyExtension(ctx context.Context, method string, params any) error {
-	return p.conn.Notify(ctx, method, params)
 }
 
 // Done is closed once the connection has terminated.

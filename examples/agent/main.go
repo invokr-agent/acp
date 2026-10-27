@@ -1,4 +1,4 @@
-// Command echoagent is the smallest useful ACP agent: it streams each prompt's
+// Command agent is the smallest useful ACP agent: it streams each prompt's
 // text back as the reply. Point any ACP client (Zed, a messaging bridge) at it
 // to check the wiring.
 package main

@@ -33,7 +33,7 @@ agent.conn.Serve(ctx, agent) // the agent holds its conn before any message arri
 
 Inside `Prompt`, stream progress with `conn.SessionUpdate`, and ask the user with `conn.RequestPermission`. When the client sends `session/cancel`, the prompt's context is cancelled. Return the context's error and the client receives the `cancelled` stop reason, as the spec requires.
 
-See [`example/echoagent`](example/echoagent/main.go).
+See [`examples/agent`](examples/agent/main.go) and [`examples/client`](examples/client/main.go).
 
 ## Client
 
