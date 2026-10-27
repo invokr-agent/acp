@@ -77,30 +77,14 @@ func ServeAgent(ctx context.Context, agent Agent, r io.Reader, w io.Writer) *Age
 			return agent.Cancel(ctx, n)
 		}),
 	}
-	if a, ok := agent.(SessionLoader); ok {
-		m["session/load"] = bind(a.LoadSession)
-	}
-	if a, ok := agent.(SessionResumer); ok {
-		m["session/resume"] = bind(a.ResumeSession)
-	}
-	if a, ok := agent.(SessionCloser); ok {
-		m["session/close"] = bind(a.CloseSession)
-	}
-	if a, ok := agent.(SessionLister); ok {
-		m["session/list"] = bind(a.ListSessions)
-	}
-	if a, ok := agent.(SessionDeleter); ok {
-		m["session/delete"] = bind(a.DeleteSession)
-	}
-	if a, ok := agent.(SessionModeSetter); ok {
-		m["session/set_mode"] = bind(a.SetSessionMode)
-	}
-	if a, ok := agent.(SessionConfigSetter); ok {
-		m["session/set_config_option"] = bind(a.SetSessionConfigOption)
-	}
-	if a, ok := agent.(LogoutHandler); ok {
-		m["logout"] = bind(a.Logout)
-	}
+	opt(m, agent, "session/load", SessionLoader.LoadSession)
+	opt(m, agent, "session/resume", SessionResumer.ResumeSession)
+	opt(m, agent, "session/close", SessionCloser.CloseSession)
+	opt(m, agent, "session/list", SessionLister.ListSessions)
+	opt(m, agent, "session/delete", SessionDeleter.DeleteSession)
+	opt(m, agent, "session/set_mode", SessionModeSetter.SetSessionMode)
+	opt(m, agent, "session/set_config_option", SessionConfigSetter.SetSessionConfigOption)
+	opt(m, agent, "logout", LogoutHandler.Logout)
 	c.peer = newPeer(ctx, stdio{r, w}, m, agent)
 	return c
 }

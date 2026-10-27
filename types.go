@@ -63,40 +63,16 @@ type AuthCapabilities struct {
 // Describes an available authentication method.
 type AuthMethod struct {
 	// Client runs the configured agent program as a separate interactive process, without passing this method to `authenticate`.
-	Terminal *AuthMethodTerminal
+	Terminal *AuthMethodTerminal `tag:"terminal"`
 	// Agent handles authentication itself through `authenticate`.
-	Agent *AuthMethodAgent
+	Agent *AuthMethodAgent `tag:""`
 	// Unknown holds a variant this version does not know, verbatim.
 	Unknown json.RawMessage
 }
 
-func (u AuthMethod) MarshalJSON() ([]byte, error) {
-	switch {
-	case u.Terminal != nil:
-		return marshalTagged("type", "terminal", u.Terminal)
-	case u.Agent != nil:
-		return json.Marshal(u.Agent)
-	}
-	return marshalUnknown(u.Unknown)
-}
+func (u AuthMethod) MarshalJSON() ([]byte, error) { return marshalUnion("type", &u) }
 
-func (u *AuthMethod) UnmarshalJSON(data []byte) error {
-	tag, err := readTag(data, "type")
-	if err != nil {
-		return err
-	}
-	*u = AuthMethod{}
-	switch tag {
-	case "terminal":
-		u.Terminal = new(AuthMethodTerminal)
-		return json.Unmarshal(data, u.Terminal)
-	case "":
-		u.Agent = new(AuthMethodAgent)
-		return json.Unmarshal(data, u.Agent)
-	}
-	u.Unknown = append(json.RawMessage(nil), data...)
-	return nil
-}
+func (u *AuthMethod) UnmarshalJSON(data []byte) error { return unmarshalUnion("type", data, u) }
 
 // Agent handles authentication itself through `authenticate`.
 type AuthMethodAgent struct {
@@ -331,61 +307,22 @@ type Content struct {
 // Content blocks represent displayable information in the Agent Client Protocol.
 type ContentBlock struct {
 	// Text content. May be plain text or formatted with Markdown.
-	Text *TextContent
+	Text *TextContent `tag:"text"`
 	// Images for visual context or analysis.
-	Image *ImageContent
+	Image *ImageContent `tag:"image"`
 	// Audio data for transcription or analysis.
-	Audio *AudioContent
+	Audio *AudioContent `tag:"audio"`
 	// References to resources that the agent can access.
-	ResourceLink *ResourceLink
+	ResourceLink *ResourceLink `tag:"resource_link"`
 	// Complete resource contents embedded directly in the message.
-	Resource *EmbeddedResource
+	Resource *EmbeddedResource `tag:"resource"`
 	// Unknown holds a variant this version does not know, verbatim.
 	Unknown json.RawMessage
 }
 
-func (u ContentBlock) MarshalJSON() ([]byte, error) {
-	switch {
-	case u.Text != nil:
-		return marshalTagged("type", "text", u.Text)
-	case u.Image != nil:
-		return marshalTagged("type", "image", u.Image)
-	case u.Audio != nil:
-		return marshalTagged("type", "audio", u.Audio)
-	case u.ResourceLink != nil:
-		return marshalTagged("type", "resource_link", u.ResourceLink)
-	case u.Resource != nil:
-		return marshalTagged("type", "resource", u.Resource)
-	}
-	return marshalUnknown(u.Unknown)
-}
+func (u ContentBlock) MarshalJSON() ([]byte, error) { return marshalUnion("type", &u) }
 
-func (u *ContentBlock) UnmarshalJSON(data []byte) error {
-	tag, err := readTag(data, "type")
-	if err != nil {
-		return err
-	}
-	*u = ContentBlock{}
-	switch tag {
-	case "text":
-		u.Text = new(TextContent)
-		return json.Unmarshal(data, u.Text)
-	case "image":
-		u.Image = new(ImageContent)
-		return json.Unmarshal(data, u.Image)
-	case "audio":
-		u.Audio = new(AudioContent)
-		return json.Unmarshal(data, u.Audio)
-	case "resource_link":
-		u.ResourceLink = new(ResourceLink)
-		return json.Unmarshal(data, u.ResourceLink)
-	case "resource":
-		u.Resource = new(EmbeddedResource)
-		return json.Unmarshal(data, u.Resource)
-	}
-	u.Unknown = append(json.RawMessage(nil), data...)
-	return nil
-}
+func (u *ContentBlock) UnmarshalJSON(data []byte) error { return unmarshalUnion("type", data, u) }
 
 // A streamed item of content
 type ContentChunk struct {
@@ -855,47 +792,18 @@ type MCPCapabilities struct {
 // Configuration for connecting to an MCP (Model Context Protocol) server.
 type MCPServer struct {
 	// HTTP transport configuration
-	HTTP *MCPServerHTTP
+	HTTP *MCPServerHTTP `tag:"http"`
 	// SSE transport configuration
-	SSE *MCPServerSSE
+	SSE *MCPServerSSE `tag:"sse"`
 	// Stdio transport configuration
-	Stdio *MCPServerStdio
+	Stdio *MCPServerStdio `tag:""`
 	// Unknown holds a variant this version does not know, verbatim.
 	Unknown json.RawMessage
 }
 
-func (u MCPServer) MarshalJSON() ([]byte, error) {
-	switch {
-	case u.HTTP != nil:
-		return marshalTagged("type", "http", u.HTTP)
-	case u.SSE != nil:
-		return marshalTagged("type", "sse", u.SSE)
-	case u.Stdio != nil:
-		return json.Marshal(u.Stdio)
-	}
-	return marshalUnknown(u.Unknown)
-}
+func (u MCPServer) MarshalJSON() ([]byte, error) { return marshalUnion("type", &u) }
 
-func (u *MCPServer) UnmarshalJSON(data []byte) error {
-	tag, err := readTag(data, "type")
-	if err != nil {
-		return err
-	}
-	*u = MCPServer{}
-	switch tag {
-	case "http":
-		u.HTTP = new(MCPServerHTTP)
-		return json.Unmarshal(data, u.HTTP)
-	case "sse":
-		u.SSE = new(MCPServerSSE)
-		return json.Unmarshal(data, u.SSE)
-	case "":
-		u.Stdio = new(MCPServerStdio)
-		return json.Unmarshal(data, u.Stdio)
-	}
-	u.Unknown = append(json.RawMessage(nil), data...)
-	return nil
-}
+func (u *MCPServer) UnmarshalJSON(data []byte) error { return unmarshalUnion("type", data, u) }
 
 // HTTP transport configuration for MCP.
 type MCPServerHTTP struct {
@@ -1174,39 +1082,17 @@ type ReleaseTerminalResponse struct {
 // The outcome of a permission request.
 type RequestPermissionOutcome struct {
 	// The prompt turn was cancelled before the user responded.
-	Cancelled *RequestPermissionOutcomeCancelled
+	Cancelled *RequestPermissionOutcomeCancelled `tag:"cancelled"`
 	// The user selected one of the provided options.
-	Selected *SelectedPermissionOutcome
+	Selected *SelectedPermissionOutcome `tag:"selected"`
 	// Unknown holds a variant this version does not know, verbatim.
 	Unknown json.RawMessage
 }
 
-func (u RequestPermissionOutcome) MarshalJSON() ([]byte, error) {
-	switch {
-	case u.Cancelled != nil:
-		return marshalTagged("outcome", "cancelled", u.Cancelled)
-	case u.Selected != nil:
-		return marshalTagged("outcome", "selected", u.Selected)
-	}
-	return marshalUnknown(u.Unknown)
-}
+func (u RequestPermissionOutcome) MarshalJSON() ([]byte, error) { return marshalUnion("outcome", &u) }
 
 func (u *RequestPermissionOutcome) UnmarshalJSON(data []byte) error {
-	tag, err := readTag(data, "outcome")
-	if err != nil {
-		return err
-	}
-	*u = RequestPermissionOutcome{}
-	switch tag {
-	case "cancelled":
-		u.Cancelled = new(RequestPermissionOutcomeCancelled)
-		return json.Unmarshal(data, u.Cancelled)
-	case "selected":
-		u.Selected = new(SelectedPermissionOutcome)
-		return json.Unmarshal(data, u.Selected)
-	}
-	u.Unknown = append(json.RawMessage(nil), data...)
-	return nil
+	return unmarshalUnion("outcome", data, u)
 }
 
 // Request for user permission to execute a tool call.
@@ -1495,123 +1381,41 @@ type SessionResumeCapabilities struct {
 // Different types of updates that can be sent during session processing.
 type SessionUpdate struct {
 	// A chunk of the user's message being streamed.
-	UserMessageChunk *ContentChunk
+	UserMessageChunk *ContentChunk `tag:"user_message_chunk"`
 	// A chunk of the agent's response being streamed.
-	AgentMessageChunk *ContentChunk
+	AgentMessageChunk *ContentChunk `tag:"agent_message_chunk"`
 	// A chunk of the agent's internal reasoning being streamed.
-	AgentThoughtChunk *ContentChunk
+	AgentThoughtChunk *ContentChunk `tag:"agent_thought_chunk"`
 	// Notification that a new tool call has been initiated.
-	ToolCall *ToolCall
+	ToolCall *ToolCall `tag:"tool_call"`
 	// Update on the status or results of a tool call.
-	ToolCallUpdate *ToolCallUpdate
+	ToolCallUpdate *ToolCallUpdate `tag:"tool_call_update"`
 	// The agent's execution plan for complex tasks. See protocol docs: [Agent Plan](https://agentclientprotocol.com/protocol/agent-plan)
-	Plan *Plan
+	Plan *Plan `tag:"plan"`
 	// Available commands are ready or have changed
-	AvailableCommandsUpdate *AvailableCommandsUpdate
+	AvailableCommandsUpdate *AvailableCommandsUpdate `tag:"available_commands_update"`
 	// The current mode of the session has changed
-	CurrentModeUpdate *CurrentModeUpdate
+	CurrentModeUpdate *CurrentModeUpdate `tag:"current_mode_update"`
 	// Session configuration options have been updated.
-	ConfigOptionUpdate *ConfigOptionUpdate
+	ConfigOptionUpdate *ConfigOptionUpdate `tag:"config_option_update"`
 	// Session metadata has been updated (title, timestamps, custom metadata)
-	SessionInfoUpdate *SessionInfoUpdate
+	SessionInfoUpdate *SessionInfoUpdate `tag:"session_info_update"`
 	// Context window and cost update for the session.
-	UsageUpdate *UsageUpdate
+	UsageUpdate *UsageUpdate `tag:"usage_update"`
 	// Information for the user that is not part of session history.
-	Notice *Notice
+	Notice *Notice `tag:"notice"`
 	// A context compaction has been created or updated.
-	CompactionUpdate *CompactionUpdate
+	CompactionUpdate *CompactionUpdate `tag:"compaction_update"`
 	// A content block appended to a context compaction's retained summary.
-	CompactionSummaryChunk *CompactionSummaryChunk
+	CompactionSummaryChunk *CompactionSummaryChunk `tag:"compaction_summary_chunk"`
 	// Unknown holds a variant this version does not know, verbatim.
 	Unknown json.RawMessage
 }
 
-func (u SessionUpdate) MarshalJSON() ([]byte, error) {
-	switch {
-	case u.UserMessageChunk != nil:
-		return marshalTagged("sessionUpdate", "user_message_chunk", u.UserMessageChunk)
-	case u.AgentMessageChunk != nil:
-		return marshalTagged("sessionUpdate", "agent_message_chunk", u.AgentMessageChunk)
-	case u.AgentThoughtChunk != nil:
-		return marshalTagged("sessionUpdate", "agent_thought_chunk", u.AgentThoughtChunk)
-	case u.ToolCall != nil:
-		return marshalTagged("sessionUpdate", "tool_call", u.ToolCall)
-	case u.ToolCallUpdate != nil:
-		return marshalTagged("sessionUpdate", "tool_call_update", u.ToolCallUpdate)
-	case u.Plan != nil:
-		return marshalTagged("sessionUpdate", "plan", u.Plan)
-	case u.AvailableCommandsUpdate != nil:
-		return marshalTagged("sessionUpdate", "available_commands_update", u.AvailableCommandsUpdate)
-	case u.CurrentModeUpdate != nil:
-		return marshalTagged("sessionUpdate", "current_mode_update", u.CurrentModeUpdate)
-	case u.ConfigOptionUpdate != nil:
-		return marshalTagged("sessionUpdate", "config_option_update", u.ConfigOptionUpdate)
-	case u.SessionInfoUpdate != nil:
-		return marshalTagged("sessionUpdate", "session_info_update", u.SessionInfoUpdate)
-	case u.UsageUpdate != nil:
-		return marshalTagged("sessionUpdate", "usage_update", u.UsageUpdate)
-	case u.Notice != nil:
-		return marshalTagged("sessionUpdate", "notice", u.Notice)
-	case u.CompactionUpdate != nil:
-		return marshalTagged("sessionUpdate", "compaction_update", u.CompactionUpdate)
-	case u.CompactionSummaryChunk != nil:
-		return marshalTagged("sessionUpdate", "compaction_summary_chunk", u.CompactionSummaryChunk)
-	}
-	return marshalUnknown(u.Unknown)
-}
+func (u SessionUpdate) MarshalJSON() ([]byte, error) { return marshalUnion("sessionUpdate", &u) }
 
 func (u *SessionUpdate) UnmarshalJSON(data []byte) error {
-	tag, err := readTag(data, "sessionUpdate")
-	if err != nil {
-		return err
-	}
-	*u = SessionUpdate{}
-	switch tag {
-	case "user_message_chunk":
-		u.UserMessageChunk = new(ContentChunk)
-		return json.Unmarshal(data, u.UserMessageChunk)
-	case "agent_message_chunk":
-		u.AgentMessageChunk = new(ContentChunk)
-		return json.Unmarshal(data, u.AgentMessageChunk)
-	case "agent_thought_chunk":
-		u.AgentThoughtChunk = new(ContentChunk)
-		return json.Unmarshal(data, u.AgentThoughtChunk)
-	case "tool_call":
-		u.ToolCall = new(ToolCall)
-		return json.Unmarshal(data, u.ToolCall)
-	case "tool_call_update":
-		u.ToolCallUpdate = new(ToolCallUpdate)
-		return json.Unmarshal(data, u.ToolCallUpdate)
-	case "plan":
-		u.Plan = new(Plan)
-		return json.Unmarshal(data, u.Plan)
-	case "available_commands_update":
-		u.AvailableCommandsUpdate = new(AvailableCommandsUpdate)
-		return json.Unmarshal(data, u.AvailableCommandsUpdate)
-	case "current_mode_update":
-		u.CurrentModeUpdate = new(CurrentModeUpdate)
-		return json.Unmarshal(data, u.CurrentModeUpdate)
-	case "config_option_update":
-		u.ConfigOptionUpdate = new(ConfigOptionUpdate)
-		return json.Unmarshal(data, u.ConfigOptionUpdate)
-	case "session_info_update":
-		u.SessionInfoUpdate = new(SessionInfoUpdate)
-		return json.Unmarshal(data, u.SessionInfoUpdate)
-	case "usage_update":
-		u.UsageUpdate = new(UsageUpdate)
-		return json.Unmarshal(data, u.UsageUpdate)
-	case "notice":
-		u.Notice = new(Notice)
-		return json.Unmarshal(data, u.Notice)
-	case "compaction_update":
-		u.CompactionUpdate = new(CompactionUpdate)
-		return json.Unmarshal(data, u.CompactionUpdate)
-	case "compaction_summary_chunk":
-		u.CompactionSummaryChunk = new(CompactionSummaryChunk)
-		return json.Unmarshal(data, u.CompactionSummaryChunk)
-	}
-	u.Unknown = append(json.RawMessage(nil), data...)
-	return nil
+	return unmarshalUnion("sessionUpdate", data, u)
 }
 
 // Request parameters for setting a session configuration option.
@@ -1813,47 +1617,18 @@ type ToolCall struct {
 // Content produced by a tool call.
 type ToolCallContent struct {
 	// Standard content block (text, images, resources).
-	Content *Content
+	Content *Content `tag:"content"`
 	// File modification shown as a diff.
-	Diff *Diff
+	Diff *Diff `tag:"diff"`
 	// Embed a terminal created with `terminal/create` by its id.
-	Terminal *Terminal
+	Terminal *Terminal `tag:"terminal"`
 	// Unknown holds a variant this version does not know, verbatim.
 	Unknown json.RawMessage
 }
 
-func (u ToolCallContent) MarshalJSON() ([]byte, error) {
-	switch {
-	case u.Content != nil:
-		return marshalTagged("type", "content", u.Content)
-	case u.Diff != nil:
-		return marshalTagged("type", "diff", u.Diff)
-	case u.Terminal != nil:
-		return marshalTagged("type", "terminal", u.Terminal)
-	}
-	return marshalUnknown(u.Unknown)
-}
+func (u ToolCallContent) MarshalJSON() ([]byte, error) { return marshalUnion("type", &u) }
 
-func (u *ToolCallContent) UnmarshalJSON(data []byte) error {
-	tag, err := readTag(data, "type")
-	if err != nil {
-		return err
-	}
-	*u = ToolCallContent{}
-	switch tag {
-	case "content":
-		u.Content = new(Content)
-		return json.Unmarshal(data, u.Content)
-	case "diff":
-		u.Diff = new(Diff)
-		return json.Unmarshal(data, u.Diff)
-	case "terminal":
-		u.Terminal = new(Terminal)
-		return json.Unmarshal(data, u.Terminal)
-	}
-	u.Unknown = append(json.RawMessage(nil), data...)
-	return nil
-}
+func (u *ToolCallContent) UnmarshalJSON(data []byte) error { return unmarshalUnion("type", data, u) }
 
 // Unique identifier for a tool call within a session.
 type ToolCallID string

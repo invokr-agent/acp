@@ -42,6 +42,14 @@ func bind[P, R any](f func(context.Context, P) (R, error)) method {
 	}
 }
 
+// opt registers impl's method under name when impl implements I, the optional
+// interface it belongs to.
+func opt[I, P, R any](m map[string]method, impl any, name string, f func(I, context.Context, P) (R, error)) {
+	if i, ok := impl.(I); ok {
+		m[name] = bind(func(ctx context.Context, p P) (R, error) { return f(i, ctx, p) })
+	}
+}
+
 // notify adapts a typed notification handler.
 func notify[P any](f func(context.Context, P) error) method {
 	return bind(func(ctx context.Context, p P) (any, error) { return nil, f(ctx, p) })
@@ -171,9 +179,7 @@ type stdio struct {
 	io.Writer
 }
 
-func (s stdio) Close() error {
-	return errors.Join(closeIf(s.Reader), closeIf(s.Writer))
-}
+func (s stdio) Close() error { return errors.Join(closeIf(s.Reader), closeIf(s.Writer)) }
 
 func closeIf(v any) error {
 	if c, ok := v.(io.Closer); ok {

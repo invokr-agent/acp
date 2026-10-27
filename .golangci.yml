@@ -1,13 +1,16 @@
 version: "2"
 linters:
-  enable:
-    - gocyclo
-    - misspell
+  # The same complexity limits invokr keeps.
+  enable: [gocyclo, gocognit, funlen, nestif, dupl, misspell]
   settings:
     gocyclo:
       min-complexity: 12
-  exclusions:
-    rules:
-      # A union's decoder is one flat switch on its tag, a case per variant.
-      - path: types.go
-        linters: [gocyclo]
+    gocognit:
+      min-complexity: 15
+    funlen:
+      lines: 80
+      statements: 50
+    nestif:
+      min-complexity: 5
+    dupl:
+      threshold: 100

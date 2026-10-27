@@ -60,19 +60,15 @@ func Connect(ctx context.Context, client Client, r io.Reader, w io.Writer) *Clie
 			return resp, err
 		}),
 	}
-	if f, ok := client.(FileSystem); ok {
-		m["fs/read_text_file"] = bind(f.ReadTextFile)
-		m["fs/write_text_file"] = bind(f.WriteTextFile)
-	}
-	if t, ok := client.(Terminals); ok {
-		m["terminal/create"] = bind(t.CreateTerminal)
-		m["terminal/output"] = bind(t.TerminalOutput)
-		m["terminal/wait_for_exit"] = bind(t.WaitForTerminalExit)
-		m["terminal/kill"] = bind(t.KillTerminal)
-		m["terminal/release"] = bind(t.ReleaseTerminal)
-	}
+	opt(m, client, "fs/read_text_file", FileSystem.ReadTextFile)
+	opt(m, client, "fs/write_text_file", FileSystem.WriteTextFile)
+	opt(m, client, "terminal/create", Terminals.CreateTerminal)
+	opt(m, client, "terminal/output", Terminals.TerminalOutput)
+	opt(m, client, "terminal/wait_for_exit", Terminals.WaitForTerminalExit)
+	opt(m, client, "terminal/kill", Terminals.KillTerminal)
+	opt(m, client, "terminal/release", Terminals.ReleaseTerminal)
+	opt(m, client, "elicitation/create", Elicitor.CreateElicitation)
 	if e, ok := client.(Elicitor); ok {
-		m["elicitation/create"] = bind(e.CreateElicitation)
 		m["elicitation/complete"] = notify(e.CompleteElicitation)
 	}
 	c.peer = newPeer(ctx, stdio{r, w}, m, client)
