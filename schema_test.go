@@ -18,28 +18,10 @@ import (
 // union's tags differ from the schema's, an enum loses a value, or a method in
 // meta.json is not wired into a connection.
 func TestTypesFollowSchema(t *testing.T) {
-	defs := loadDefs(t)
 	gotypes := parseTypes(t)
-	for name, def := range defs {
-		if jsonRPCEnvelope[name] {
-			continue
-		}
-		got, ok := gotypes[strings.ToLower(name)]
-		if !ok {
-			t.Errorf("%s: no Go type", name)
-			continue
-		}
-		if props := propertyNames(def); props != nil {
-			missing, extra := diff(props, got.fields)
-			if len(missing) > 0 || (len(extra) > 0 && def["anyOf"] == nil && def["oneOf"] == nil) {
-				t.Errorf("%s: fields missing %v, not in schema %v", name, missing, extra)
-			}
-		}
-		// Raw-JSON and flattened types carry no tags or constants to compare.
-		if want := constValues(def); want != nil && got.values != nil {
-			if missing, _ := diff(want, got.values); len(missing) > 0 {
-				t.Errorf("%s: variants or values missing %v", name, missing)
-			}
+	for name, def := range loadDefs(t) {
+		if !jsonRPCEnvelope[name] {
+			checkType(t, name, def, gotypes[strings.ToLower(name)])
 		}
 	}
 	src := readAll(t, "agent.go", "client.go", "conn.go")
@@ -48,6 +30,27 @@ func TestTypesFollowSchema(t *testing.T) {
 			if !strings.Contains(src, strconv.Quote(method)) {
 				t.Errorf("method %s is not wired into a connection", method)
 			}
+		}
+	}
+}
+
+func checkType(t *testing.T, name string, def map[string]any, got *goType) {
+	t.Helper()
+	if got == nil {
+		t.Errorf("%s: no Go type", name)
+		return
+	}
+	if props := propertyNames(def); props != nil {
+		missing, extra := diff(props, got.fields)
+		// A flattened union also carries its variants' fields.
+		if len(missing) > 0 || (len(extra) > 0 && def["anyOf"] == nil && def["oneOf"] == nil) {
+			t.Errorf("%s: fields missing %v, not in schema %v", name, missing, extra)
+		}
+	}
+	// Raw-JSON and flattened types carry no tags or constants to compare.
+	if want := constValues(def); want != nil && got.values != nil {
+		if missing, _ := diff(want, got.values); len(missing) > 0 {
+			t.Errorf("%s: variants or values missing %v", name, missing)
 		}
 	}
 }
