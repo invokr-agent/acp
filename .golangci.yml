@@ -1,0 +1,13 @@
+version: "2"
+linters:
+  enable:
+    - gocyclo
+    - misspell
+  settings:
+    gocyclo:
+      min-complexity: 12
+  exclusions:
+    rules:
+      # A union's decoder is one flat switch on its tag, a case per variant.
+      - path: types.go
+        linters: [gocyclo]
