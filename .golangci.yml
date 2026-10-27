@@ -1,6 +1,6 @@
 version: "2"
 linters:
-  # The same complexity limits invokr keeps.
+  # The same complexity limits invokr keeps; tests are exempt, as there.
   enable: [gocyclo, gocognit, funlen, nestif, dupl, misspell]
   settings:
     gocyclo:
@@ -14,3 +14,7 @@ linters:
       min-complexity: 5
     dupl:
       threshold: 100
+  exclusions:
+    rules:
+      - path: _test\.go
+        linters: [gocyclo, gocognit, funlen, nestif, dupl]
