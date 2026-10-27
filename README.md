@@ -21,6 +21,18 @@ Unions such as `SessionUpdate` and `ContentBlock` have one pointer field per var
 
 The unstable methods (`providers/*`, `mcp/message`, `session/fork`) are not included. ACP v2 will be added as a sibling package once it is stable.
 
+## Schema
+
+`schema/v1` and `schema/v2` are copies of the official schemas. `make schema` refreshes them from the spec repo (`SCHEMA_REF=<tag>` pins a release; the default is `main`).
+
+`types.go` is maintained by hand. `TestTypesFollowSchema` fails when it drifts from `schema/v1`, naming what is out of line:
+- a missing type;
+- object fields that differ;
+- union tags or enum values that differ;
+- a method from `meta.json` that is not wired into a connection.
+
+After `make schema`, run `make test` and bring `types.go` in line.
+
 ## Agent
 
 Implement `acp.Agent`. Optional methods (`SessionLoader`, `SessionModeSetter`, and so on) are separate interfaces; implement the ones you support and advertise them in `InitializeResponse`.
