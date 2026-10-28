@@ -1,4 +1,4 @@
-module github.com/invokr-ai/acp
+module github.com/invokr-agent/acp
 
 go 1.26.3
 

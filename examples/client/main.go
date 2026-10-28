@@ -14,7 +14,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/invokr-ai/acp"
+	"github.com/invokr-agent/acp"
 )
 
 type terminal struct{}

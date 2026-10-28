@@ -10,7 +10,7 @@ import (
 	"os"
 	"sync/atomic"
 
-	"github.com/invokr-ai/acp"
+	"github.com/invokr-agent/acp"
 )
 
 type echo struct {

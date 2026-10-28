@@ -5,7 +5,7 @@ Go types and connections for the [Agent Client Protocol](https://agentclientprot
 The package holds the protocol only and does not depend on any particular agent or client. JSON-RPC 2.0 comes from [`go.lsp.dev/jsonrpc2`](https://github.com/go-language-server/jsonrpc2), with ACP's newline-delimited framing.
 
 ```
-go get github.com/invokr-ai/acp
+go get github.com/invokr-agent/acp
 ```
 
 ## Coverage
